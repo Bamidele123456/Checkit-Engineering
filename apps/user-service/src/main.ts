@@ -4,19 +4,16 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  // Use Render's assigned port in production, or 50051 locally
-  const port = process.env.PORT || 50051; 
-
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
     options: {
-      package: 'user', 
+      package: 'user', // matches the 'package' in user.proto
       protoPath: join(__dirname, '../../packages/proto/user.proto'),
-      url: `0.0.0.0:${port}`, // Dynamically binds to the correct port!
+      url: '0.0.0.0:50051',
     },
   });
   
   await app.listen();
-  console.log(`User gRPC Microservice is securely listening on port ${port}`);
+  console.log('User Microservice is listening on port 50051');
 }
 bootstrap();

@@ -4,27 +4,16 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  // 1. Create a standard HTTP app (This makes Render happy)
-  const app = await NestFactory.create(AppModule);
-
-  // 2. Connect your gRPC microservice alongside it
-  app.connectMicroservice<MicroserviceOptions>({
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
     options: {
-      package: 'user', 
+      package: 'user', // matches the 'package' in user.proto
       protoPath: join(__dirname, '../../packages/proto/user.proto'),
-      url: '0.0.0.0:50052', // Postman will use this
+      url: '0.0.0.0:50052',
     },
   });
-
-  // 3. Start the gRPC microservice
-  await app.startAllMicroservices();
-
-  // 4. Start the HTTP server on the port Render provides
-  const httpPort = process.env.PORT || 3000;
-  await app.listen(httpPort);
   
-  console.log(`User HTTP Service is keeping Render happy on port ${httpPort}`);
-  console.log(`User gRPC Microservice is ready for Postman on port 50051`);
+  await app.listen();
+  console.log('User Microservice is listening on port 50051');
 }
 bootstrap();

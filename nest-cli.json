@@ -9,13 +9,24 @@
     "tsConfigPath": "tsconfig.build.json"
   },
   "projects": {
+    "api-gateway": {
+      "type": "application",
+      "root": "apps/api-gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/api-gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+      }
+    },
     "user-service": {
       "type": "application",
       "root": "apps/user-service",
       "entryFile": "main",
       "sourceRoot": "apps/user-service/src",
       "compilerOptions": {
-        "assets": ["../../packages/proto/*.proto"],
+        "assets": [
+          "../../packages/proto/*.proto"
+        ],
         "watchAssets": true
       }
     },
@@ -25,7 +36,9 @@
       "entryFile": "main",
       "sourceRoot": "apps/wallet-service/src",
       "compilerOptions": {
-        "assets": ["../../packages/proto/*.proto"],
+        "assets": [
+          "../../packages/proto/*.proto"
+        ],
         "watchAssets": true
       }
     }

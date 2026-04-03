@@ -1,98 +1,126 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Checkit Engineering - Backend Assessment
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This repository contains a robust, microservice-based backend architecture consisting of a **User Service** and a **Wallet Service**. The services are built with **NestJS**, utilize **gRPC** for high-performance internal communication, and use **Prisma ORM** with a **PostgreSQL** database (Supabase).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### 🏛️ Architecture & Deployment Note
+> These microservices are built using gRPC for high-performance, internal communication and have been successfully deployed to Render to demonstrate cloud readiness. However, because standard PaaS public load balancers perform TLS termination and downgrade HTTP/2 traffic to HTTP/1.1, the raw gRPC endpoints cannot be accessed directly via the public internet using tools like Postman. 
+> 
+> In a true production environment, these would be deployed as Private Services behind a public-facing API Gateway. **To test the core logic, transaction safety, and database integration, please clone the repository and run the services locally.**
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## ⚙️ Project Setup Instructions
 
-## Project setup
+### Prerequisites
+* Node.js (v18 or higher recommended)
+* npm
+* A PostgreSQL database string (Supabase recommended)
+* Postman (for testing gRPC endpoints)
 
-```bash
-$ npm install
-```
+### 1. Clone the repository
+\`\`\`bash
+git clone https://github.com/Bamidele123456/Checkit-Engineering.git
+cd Checkit-Engineering
+\`\`\`
 
-## Compile and run the project
+### 2. Install dependencies
+\`\`\`bash
+npm install
+\`\`\`
 
-```bash
-# development
-$ npm run start
+### 3. Environment Variables
+Create a `.env` file in the root directory and add your database connection strings. Ensure special characters in passwords are URL-encoded.
+\`\`\`env
+DATABASE_URL="postgresql://postgres.[YOUR_PROJECT]:[YOUR_PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[YOUR_PROJECT]:[YOUR_PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres"
+\`\`\`
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
-```
+## 🗄️ How to Run Migrations
 
-## Run tests
+Before starting the services, you must sync the Prisma schema with your database and generate the Prisma Client. Run the following commands in the root directory:
 
-```bash
-# unit tests
-$ npm run test
+**1. Generate the Prisma Client:**
+\`\`\`bash
+npx prisma generate --schema=./packages/prisma/schema.prisma
+\`\`\`
 
-# e2e tests
-$ npm run test:e2e
+**2. Push the tables to the database:**
+\`\`\`bash
+npx prisma db push --schema=./packages/prisma/schema.prisma
+\`\`\`
+*(Note: `db push` is used for prototyping. In a CI/CD production environment, `prisma migrate deploy` would be utilized).*
 
-# test coverage
-$ npm run test:cov
-```
+---
 
-## Deployment
+## 🚀 How to Run Services
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Because this is a microservice architecture, you will need to compile the TypeScript code and start both services independently. 
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**1. Build the applications:**
+\`\`\`bash
+npm run build user-service
+npm run build wallet-service
+\`\`\`
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+**2. Copy the gRPC Dictionary:**
+The compiled JavaScript needs access to the `.proto` definitions. Run the following command to copy the files into the `dist` folder:
+* **Windows (PowerShell):** `Copy-Item -Path packages -Destination dist -Recurse`
+* **Mac/Linux:** `cp -r packages dist/`
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**3. Start the Services:**
+Open two separate terminals in the root directory:
 
-## Resources
+*Terminal 1 (User Service - Port 50051):*
+\`\`\`bash
+node dist/user-service/src/main.js
+\`\`\`
 
-Check out a few resources that may come in handy when working with NestJS:
+*Terminal 2 (Wallet Service - Port 50052):*
+\`\`\`bash
+node dist/wallet-service/src/main.js
+\`\`\`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## 🧪 Example Requests (Postman gRPC)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+To test the APIs, open Postman, create a **gRPC Request**, and import the `user.proto` file into your Postman API workspace. 
 
-## Stay in touch
+Ensure **Server Certificate Verification (TLS)** is turned **OFF** for local testing.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 1. Create a User (UserService)
+* **URL:** `localhost:50051`
+* **Method:** `UserService / CreateUser`
+* **Message Payload:**
+\`\`\`json
+{
+  "email": "test@example.com",
+  "name": "John Doe"
+}
+\`\`\`
+*(Returns the new User object including the ID. Uses a try/catch block to return a clean `ALREADY_EXISTS` constraint error if the email is taken).*
 
-## License
+### 2. Create a Wallet (WalletService)
+* **URL:** `localhost:50052`
+* **Method:** `WalletService / CreateWallet`
+* **Message Payload:**
+\`\`\`json
+{
+  "userId": "PASTE_USER_ID_HERE"
+}
+\`\`\`
+*(Initializes a wallet with a balance of 0).*
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### 3. Debit Wallet (WalletService)
+* **URL:** `localhost:50052`
+* **Method:** `WalletService / DebitWallet`
+* **Message Payload:**
+\`\`\`json
+{
+  "userId": "PASTE_USER_ID_HERE",
+  "amount": 50.00
+}
+\`\`\`
+*(Uses an interactive Prisma Transaction to ensure race conditions do not occur. It will securely reject the transaction with a `FAILED_PRECONDITION` error if the wallet lacks sufficient funds).*
