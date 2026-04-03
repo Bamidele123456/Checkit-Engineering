@@ -1,14 +1,23 @@
-import { Controller } from '@nestjs/common';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { PrismaService } from './prisma.service';
 import { status } from '@grpc/grpc-js';
-
+import { Controller, Get } from '@nestjs/common';
 @Controller()
 export class AppController {
   constructor(private readonly prisma: PrismaService) {}
 
   // The 'UserService' string must match the service name in user.proto
   // The 'CreateUser' string must match the rpc method in user.proto
+
+  @Get('/')
+  healthCheck() {
+    return {
+      status: 'Online',
+      architecture: 'gRPC Microservices',
+      message: 'User Service is live. Please use local Postman to test gRPC endpoints. See README for details.',
+    };
+  }
+
   @GrpcMethod('UserService', 'CreateUser')
   async createUser(data: { email: string; name: string }) {
     try {
